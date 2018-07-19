@@ -22,17 +22,21 @@ const connection = mysql.createConnection({
 */
 
 
-module.exports.connect = connection.connect(err => {
-  if (err)
-    console.error("Error connecting " + err.stack);
-  else
-    console.log("Connected to database as id " + connection.threadID);
-});
+module.exports.connect = () => {
+  connection.connect(err => {
+    if (err)
+      console.error("Error connecting " + err.stack);
+    else
+      console.log("Connected to database as id " + connection.threadID);
+  });
+};
 
 
-module.exports.disconnect = connection.end(err => {
-  if (err)
-    console.error("Error:", err.stack);
-  else
-  console.log("Connection to database ended");
-});
+module.exports.disconnect = () => {
+  connection.end(err => {
+    if (err)
+      console.error("Error:", err.stack);
+    else
+      console.log("Connection to database ended");
+  });
+};
