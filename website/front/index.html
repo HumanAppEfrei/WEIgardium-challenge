@@ -24,33 +24,78 @@
   </header>
   
   
-  <main class="container">
-    <div class="row">
-      <h1 aria-label="Bienvenue" class="flow-text">
-        Bienvenue sur le site du challenge WEIGARDIUM de Human'App !
-      </h1>
+  <main>
+    <div class="container">
+      <div class="row center-align">
+        <h1 aria-label="Bienvenue">
+          Bienvenue sur le site du challenge WEIGARDIUM de Human'App !
+        </h1>
+      </div>
+      
+      
+      
+      <div class="row">
+        <div class="valign-wrapper">
+          <div class="col s6">
+            <h2 class="center-align">
+              Cette année, Human'App vous propose un défi...
+            </h2>
+          </div>
+          <div class="col s6">
+            <img src="./public/logo.svg" width="100%" height="100%">
+          </div>
+        </div>
+  
+        <div class="valign-wrapper">
+          <div class="col s6">
+            <img src="./public/weigardium.jpg" width="100%" height="100%">
+          </div>
+          
+          <div class="col s6">
+            <h2 class="center-align">
+              ... sois le premier à le réussir, et Human'App te paye ton WEI !
+            </h2>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div class="row">
-    
+    <div class="parallax-container" style="height: 60vh">
+      <div class="parallax">
+        <img src="./public/weigardium.jpg">
+      </div>
     </div>
   </main>
   
 
   <footer>
     <div class="row">
-      <div class="col-s4"></div>
-      <div class="col-s4"></div>
-      <div class="col-s4"></div>
+      <div class="col s12 m4"></div>
+      
+      <div class="col s12 m4">
+        <a href="#">
+          <img src="./public/weigardium.jpg" height="100%" width="100%">
+        </a>
+      </div>
+      
+      <div class="col s12 m4"></div>
+    </div>
+    
+    <div class="footer-copyright">
+      © Human'App - 2018
     </div>
   </footer>
 
   
   
-  <!-- Once the page is loaded, initializing MaterializeJS -->
+  <script type="text/javascript" src="./js/jquery.min.js"></script>
   <script type="text/javascript" src="./js/materialize.min.js"></script>
+
+  <!-- Once the page is loaded, initializing MaterializeJS -->
   <script type="text/javascript">
     M.AutoInit();
   </script>
+
+
 </body>
 </html>
