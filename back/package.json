@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/HumanAppEfrei/WEIgardium-challenge/issues"
   },
-  "homepage": "https://github.com/HumanAppEfrei/WEIgardium-challenge#readme"
+  "homepage": "https://github.com/HumanAppEfrei/WEIgardium-challenge#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
 }
