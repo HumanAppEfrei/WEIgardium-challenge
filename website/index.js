@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'front')));
 
 
 app.get('/', (req, res) => {
-  res.status(200).send("Hello world!");
+  res.status(200).render("front/index.html");
 });
 
 
