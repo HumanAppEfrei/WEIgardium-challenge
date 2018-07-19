@@ -5,7 +5,7 @@ const app = express();
 const listeningPort = 1664;
 
 
-app.use("/downloads", express.static('public'));
+app.use("/downloads", express.static('front/public'));
 
 
 
