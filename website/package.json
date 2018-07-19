@@ -18,5 +18,8 @@
   "homepage": "https://github.com/HumanAppEfrei/WEIgardium-challenge#readme",
   "dependencies": {
     "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0"
   }
 }
