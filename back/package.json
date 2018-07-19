@@ -1,0 +1,19 @@
+{
+  "name": "weigardium-challenge-back",
+  "version": "0.0.0",
+  "description": "Backend for the weigardium challenge",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HumanAppEfrei/WEIgardium-challenge.git"
+  },
+  "author": "AmiralBl3ndic <camille.briand@efrei.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HumanAppEfrei/WEIgardium-challenge/issues"
+  },
+  "homepage": "https://github.com/HumanAppEfrei/WEIgardium-challenge#readme"
+}
