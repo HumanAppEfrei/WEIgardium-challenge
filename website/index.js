@@ -5,7 +5,8 @@ const app = express();
 const listeningPort = 1664;
 
 
-app.use("/downloads", express.static('front/public'));
+app.use("/downloads", express.static(path.join(__dirname, 'front/public')));
+app.use(express.static(path.join(__dirname, 'front')));
 
 
 
