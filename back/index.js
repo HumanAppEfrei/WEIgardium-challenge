@@ -5,19 +5,19 @@ const listeningPort = 1664;
 
 
 app.get('/', (req, res) => {
-    res.status(200).send("Hello world!");
+  res.status(200).send("Hello world!");
 });
 
 
 app.post('/exercise1', (req, res) => {
-   console.log("Got a POST request on '/exercise1'");
+  console.log("Got a POST request on '/exercise1'");
 
-   // TODO: do some stuff here
+  // TODO: do some stuff here
 
-   res.status(200).json({
-      error: false,
-      message: "Exercice réussi !"
-   });
+  res.status(200).json({
+    error: false,
+    message: "Exercice réussi !"
+  });
 });
 
 
