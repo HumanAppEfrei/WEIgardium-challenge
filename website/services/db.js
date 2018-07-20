@@ -27,7 +27,7 @@ module.exports.connect = () => {
     if (err)
       console.error("Error connecting " + err.stack);
     else
-      console.log("Connected to database as id " + connection.threadID);
+      console.log("Connected to database");
   });
 };
 
@@ -39,4 +39,11 @@ module.exports.disconnect = () => {
     else
       console.log("Connection to database ended");
   });
+};
+
+
+
+
+module.exports.createUser = user => {
+
 };
