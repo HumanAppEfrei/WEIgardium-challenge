@@ -10,12 +10,11 @@ const listeningPort = 1664;
 
 app.use(bodyParser.json({type: 'application/*+json'}));
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.text({type: 'text/html'}));
 
 app.use("/downloads", express.static(path.join(__dirname, 'front/public')));
 app.use(express.static(path.join(__dirname, 'front')));
 
-
-db.connect();
 
 
 app.get('/', (req, res) => {
@@ -77,4 +76,10 @@ app.post("/admin", (req, res) => {
   }
 });
 
-app.listen(listeningPort, () => console.log(`Listening on port ${listeningPort}`));
+
+
+app.listen(listeningPort, () => {
+  db.connect();
+  console.log(`Listening on port ${listeningPort}`);
+  db.selectAll("User");
+});
