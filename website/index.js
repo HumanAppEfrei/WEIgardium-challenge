@@ -78,8 +78,9 @@ app.post("/admin", (req, res) => {
 
 
 
-app.listen(listeningPort, () => {
-  db.connect();
+app.listen(listeningPort, async () => {
+  await db.connect();
   console.log(`Listening on port ${listeningPort}`);
-  db.selectAll("User");
+  users = await db.selectAll("User");
+  console.log(users);
 });
