@@ -3,7 +3,8 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 
-const db = require("./services/db");
+const db = require("./config/db");
+const User = require("./models/user");
 
 const listeningPort = 1664;
 
@@ -77,10 +78,27 @@ app.post("/admin", (req, res) => {
 });
 
 
+app.get("/users/:id", async (req, res) => {
+  let userID = req.params.id;
+  let user = await User.findOne({id: userID});
+
+  if (!user.exists)
+    return res.status(404).json({
+      error: true,
+      code: 'E_NOT_FOUND',
+      message: 'User with id ' + userID + ' not found'
+    });
+
+  return res.status(200).json({
+    error: false,
+    code: 'S_SUCCESS',
+    user
+  });
+});
+
+
 
 app.listen(listeningPort, async () => {
-  await db.connect();
+  db.connection = await db.connect();
   console.log(`Listening on port ${listeningPort}`);
-  users = await db.selectAll("User");
-  console.log(users);
 });
