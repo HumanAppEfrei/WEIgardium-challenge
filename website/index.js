@@ -6,6 +6,8 @@ const app = express();
 const db = require("./config/db");
 const User = require("./models/user");
 
+const isAdmin = require("./middlewares/isAdmin");
+
 const listeningPort = 1664;
 
 
@@ -78,7 +80,8 @@ app.post("/admin", (req, res) => {
 });
 
 
-app.get("/users/:id", async (req, res) => {
+app.all("/user/:id", isAdmin);
+app.get("/user/:id", async (req, res) => {
   let userID = req.params.id;
   let user = await User.findOne({id: userID});
 
