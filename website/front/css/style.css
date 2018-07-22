@@ -4,6 +4,19 @@ body {
 	flex-direction: column;
 }
 
+.brand-logo {
+	font-family: 'Amatic SC', 'Roboto', 'Arial';
+	font-size: 50px !important;
+}
+
+h1 {
+	font-family: 'Amatic SC', 'Roboto';
+}
+
+h2 {
+	font-family: 'Amatic SC', 'Roboto';
+}
+
 main {
 	flex: 1 0 auto;
 }
