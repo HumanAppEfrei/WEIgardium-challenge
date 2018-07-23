@@ -3,37 +3,15 @@ const hash = require("hash-sum");
 let db = require("./../config/db");
 
 module.exports = async (req, res, next) => {
-
-  if (typeof(req.body.firstName) !== "string")
+  if (typeof(req.headers.admin_fname) !== "string")
     return res.status(400).redirect("/");
 
   db = db.connection ? db.connection : await db.connect();
 
-  // Requesting possible administrators from database
-  const [rows, fields] = await db.execute("SELECT * FROM `Admin` WHERE `first_name` = ? AND `last_name` = ?", [req.body.firstName, req.body.lastName]);
+  const [rows, fields] = await db.execute("SELECT EXISTS(SELECT * FROM `Admin` WHERE `first_name` = ? AND `last_name` = ? AND `password` = ?) AS 'ok'", [req.headers.admin_fname, req.headers.admin_lname, hash(req.headers.admin_pass)]);
 
-  let possibilities = [];
-  rows.forEach((val, index, array) => {
-    possibilities.push({
-      firstName: rows[index].first_name,
-      lastName: rows[index].last_name,
-      password: rows[index].password
-    });
-  });
-
-
-  let adminOk = null;
-  possibilities.forEach((admin, index, array) => {
-    if (admin.password === hash(req.body.password))
-      adminOk = admin;
-  });
-
-
-  if (adminOk != null) {
-    console.log("Admin connected!");
+  if (rows[0].ok === 1)
     next();
-  }
-  else {
+  else
     return res.status(403).redirect("/");
-  }
 };
