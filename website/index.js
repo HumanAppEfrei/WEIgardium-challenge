@@ -57,6 +57,7 @@ app.all("/admin", (req, res, next) => {
 
 /** Admin panel
  */
+app.all("/admin", isAdmin);
 app.post("/admin", (req, res) => {
   // TODO: This is only temporary security, need to be enhanced later on
 
@@ -80,7 +81,7 @@ app.post("/admin", (req, res) => {
 });
 
 
-app.all("/user/:id", isAdmin);
+//app.all("/user/:id", isAdmin);
 app.get("/user/:id", async (req, res) => {
   let userID = req.params.id;
   let user = await User.findOne({id: userID});
@@ -101,7 +102,22 @@ app.get("/user/:id", async (req, res) => {
 
 
 
-app.listen(listeningPort, async () => {
-  db.connection = await db.connect();
-  console.log(`Listening on port ${listeningPort}`);
+
+// Listening or creating admins
+
+newAdmin = false;
+process.argv.forEach((val, index, array) => {
+  if (val === "--create-admin") {
+    newAdmin = true;
+  }
 });
+
+if (newAdmin) {
+  require("./config/admin").create(process.exit);
+}
+else {
+  app.listen(listeningPort, async () => {
+    db.connection = await db.connect();
+    console.log(`Listening on port ${listeningPort}`);
+  });
+}
