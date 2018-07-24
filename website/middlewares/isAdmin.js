@@ -8,10 +8,36 @@ module.exports = async (req, res, next) => {
 
   db = db.connection ? db.connection : await db.connect();
 
+  req.admin = {
+    isAdmin: false
+  };
+
   const [rows, fields] = await db.execute("SELECT EXISTS(SELECT * FROM `Admin` WHERE `first_name` = ? AND `last_name` = ? AND `password` = ?) AS 'ok'", [req.headers.admin_fname, req.headers.admin_lname, hash(req.headers.admin_pass)]);
 
-  if (rows[0].ok === 1)
+  // If admin found with passed parameters
+  if (rows[0].ok === 1) {
+    req.admin = {
+      isAdmin: true,
+      firstName: req.headers.admin_fname,
+      lastName: req.headers.admin_lname,
+      fullName: req.headers.admin_fname + ' ' + req.headers.admin_lname
+    };
     next();
-  else
+  }
+
+  // Checking if bad password or no admin
+  else {
+    const [admins, fields] = await db.execute("SELECT EXISTS(SELECT * FROM `Admin` WHERE `first_name` = ? AND `last_name` = ?) AS 'exists'", [req.headers.admin_fname, req.headers.admin_lname]);
+
+    // Bad password
+    if (admins != null && admins !== undefined && admins.length >= 1)
+      return res.status(401).json({
+        error: true,
+        code: 'E_BAD_PASSWORD',
+        message: 'Bad password'
+      });
+  }
+
+    // No admin found
     return res.status(403).redirect("/");
 };
