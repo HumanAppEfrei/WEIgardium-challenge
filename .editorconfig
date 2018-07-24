@@ -7,7 +7,7 @@ charset = "utf-8"
 indent_style = tab
 indent_size = 4
 
-[*.{js, json}]
+[*.{js, json, html, ejs}]
 indent_style = space
 indent_size = 2
 

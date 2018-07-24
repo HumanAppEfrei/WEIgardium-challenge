@@ -17,17 +17,13 @@ app.use(bodyParser.text({type: 'text/html'}));
 
 app.use("/downloads", express.static(path.join(__dirname, 'front/public')));
 
-app.engine("html", require("ejs").renderFile);
 app.set("view engine", "ejs");
-//app.use(express.static(path.join(__dirname, 'front')));
+app.set("views", path.join(__dirname, 'front'));
 
 
 
 app.get('/', (req, res) => {
-  console.log("User connected");
-  console.clear();
-  console.dir(req.headers);
-  res.status(200).render("front/index.html");
+  res.status(200).render("index.ejs");
 });
 
 
