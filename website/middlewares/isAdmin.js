@@ -1,4 +1,3 @@
-const admins = require("./../config/admin");
 const hash = require("hash-sum");
 let db = require("./../config/db");
 
@@ -8,20 +7,10 @@ module.exports = async (req, res, next) => {
 
   db = db.connection ? db.connection : await db.connect();
 
-  req.admin = {
-    isAdmin: false
-  };
-
   const [rows, fields] = await db.execute("SELECT EXISTS(SELECT * FROM `Admin` WHERE `first_name` = ? AND `last_name` = ? AND `password` = ?) AS 'ok'", [req.headers.admin_fname, req.headers.admin_lname, hash(req.headers.admin_pass)]);
 
   // If admin found with passed parameters
   if (rows[0].ok === 1) {
-    req.admin = {
-      isAdmin: true,
-      firstName: req.headers.admin_fname,
-      lastName: req.headers.admin_lname,
-      fullName: req.headers.admin_fname + ' ' + req.headers.admin_lname
-    };
     next();
   }
 
