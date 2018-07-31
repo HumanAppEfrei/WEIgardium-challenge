@@ -23,7 +23,7 @@ app.set("views", path.join(__dirname, 'front'));
 
 
 app.get('/', (req, res) => {
-  res.status(200).render("index.ejs");
+  res.status(200).render("index.ejs", {message: "Camille"});
 });
 
 
