@@ -12,7 +12,7 @@ checkConnection = async () => {
 
 module.exports = class User {
   constructor (row, json) {
-    if (row)
+    if (row != null && row !== undefined)
       this.row = {
         id: row.id,
         student_id: row.student_id,

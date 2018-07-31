@@ -40,25 +40,7 @@ app.post('/exercise1', (req, res) => {
 
 
 
-app.all("/admin", (req, res, next) => {
-  if (req.body) {
-    console.log(req.body);
-    next();
-  }
-  else {
-    console.log("Empty req.body");
-    res.status(403).json({
-      error: true,
-      code: 'E_NOT_ALLOWED',
-      message: 'Access forbidden'
-    });
-  }
-});
-
-
-/** Admin panel
- */
-app.all("/admin", isAdmin);
+/*app.all("/admin", isAdmin);
 app.post("/admin", (req, res) => {
   // TODO: This is only temporary security, need to be enhanced later on
 
@@ -79,26 +61,31 @@ app.post("/admin", (req, res) => {
         message: 'Access forbidden'
       });
   }
-});
+});*/
 
 
-//app.all("/user/:id", isAdmin);
-app.get("/user/:id", async (req, res) => {
-  let userID = req.params.id;
-  let user = await User.findOne({id: userID});
 
-  if (!user.exists)
-    return res.status(404).json({
-      error: true,
-      code: 'E_NOT_FOUND',
-      message: 'User with id ' + userID + ' not found'
-    });
+app.post("/user/:studentId/", async (req, res) => {
+  const studentID = req.params.id;
+  let user = await User.findOne({studentID: studentID});
 
-  return res.status(200).json({
-    error: false,
-    code: 'S_SUCCESS',
-    user
+  // If the user exists
+  if (user.exists)
+    return res.status(400).redirect("/");
+
+  // Creating a user
+  const data = req.body;
+  user = new User(null , {
+    studentID: studentID,
+    first_name: data.firstName,
+    last_name: data.lastName,
+    done: {
+      ex_1: false,
+      ex_2: false,
+      ex_3: false
+    }
   });
+  user.create();
 });
 
 
