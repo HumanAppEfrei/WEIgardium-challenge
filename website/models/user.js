@@ -1,4 +1,6 @@
 let db = require("./../config/db").connection;
+const FancyLogger = require("simple-fancy-log");
+const logger = new FancyLogger();
 
 checkConnection = async () => {
 // Checking connection before performing any request
@@ -10,7 +12,7 @@ checkConnection = async () => {
   }
 };
 
-module.exports = class User {
+class User {
   constructor (row, json) {
     if (row != null && row !== undefined)
       this.row = {
@@ -91,7 +93,6 @@ module.exports = class User {
 
     // If no precise enough criteria was passed
     else {
-      console.log("This is a test");
       return new User(undefined);
     }
 
@@ -100,11 +101,62 @@ module.exports = class User {
   }
 
 
-  /** Function that creates a User entry in the User table of the database
-   */
-  async create () {
+  static async update (user, exs, cb = () => {}) {
     await checkConnection();
 
-    await db.execute("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?, ?, ?, ?)", [this.row.first_name, this.row.last_name, this.row.student_id, this.row.ex_1, this.row.ex_2, this.row.ex_3]);
+    let userToUpdate = this.findOne(user);
+
+    if (!userToUpdate.exists)
+      return;
+
+    if (exs.ex3 && !userToUpdate.done.ex3) {
+      logger.addTags("update", "exercise", "exercise-success");
+      logger.log("User " + this.fullName + " completed ex 3");
+      await db.execute("UPDATE User SET ex_3 = 1 WHERE id = ?", userToUpdate.id);
+      await db.execute("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+    }
+
+    if (exs.ex2 && !userToUpdate.done.ex2) {
+      logger.addTags("update", "exercise", "exercise-success");
+      logger.log("User " + this.fullName + " completed ex 3");
+      await db.execute("UPDATE User SET ex_2 = 1 WHERE id = ?", userToUpdate.id);
+      await db.execute("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+    }
+
+    if (exs.ex1 && !userToUpdate.done.ex1) {
+      logger.addTags("update", "exercise", "exercise-success");
+      logger.log("User " + this.fullName + " completed ex 3");
+      await db.execute("UPDATE User SET ex_1 = 1 WHERE id = ?", userToUpdate.id);
+      await db.execute("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+    }
+
+    cb();
   }
-};
+
+
+  /** Function that creates a User entry in the User table of the database
+   */
+  async create (req, res) {
+    await checkConnection();
+
+    logger.addTags("post", "user-creation");
+
+    await db.execute("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?)", [this.row.first_name, this.row.last_name, this.row.student_id])
+      .then(response => {
+        logger.addTag("user-creation");
+        logger.log("User created: " + this.fullName + ' (' + this.studentID + ')');
+        return res.status(200).json({
+          error: false,
+          message: "User created"
+        });
+      })
+      .catch(err => {
+        logger.addTags("warning", "error");
+        logger.log("Unable to create user " + this.fullName + ' (' + this.studentID + ')');
+        return res.status(400).json({error: true});
+      });
+  }
+}
+
+
+module.exports = User;
