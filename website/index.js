@@ -130,7 +130,7 @@ app.put("/user", async (req, res) => {
 
 // Listening or creating admins
 
-newAdmin = false;
+let newAdmin = false;
 process.argv.forEach((val, index, array) => {
   if (val === "--create-admin") {
     logger.addTags("admin", "admin-creation");
