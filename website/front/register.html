@@ -19,16 +19,12 @@
       <nav>
         <div class="nav-wrapper teal lighten-1">
           <div class="container">
-            <a href="index.html" class="brand-logo left hide-on-med-and-down"><b>Human'app</b></a>
+            <a href="/" class="brand-logo left hide-on-med-and-down"><b>Human'app</b></a>
             
-            <a href="index.html" class="brand-logo center hide-on-large-only"><b>Human'app</b></a>
+            <a href="/" class="brand-logo center hide-on-large-only"><b>Human'app</b></a>
             
             <ul id="nav-mobile" class="left">
               <li><a href="#"><i class="fas fa-bars"></i></a></li>
-            </ul>
-            
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-              <li><a href="#">A propos</a></li>
             </ul>
           </div>
         </div>
@@ -57,7 +53,8 @@
         
         <div class="col s12 m6 push-m3">
           <label for="student-id-input" id="student-id-label">Numéro d'étudiant (20180xxx)</label>
-          <input type="number" placeholder="20180xxx" id="student-id-input">
+          <input type="number" placeholder="20180xxx" id="student-id-input" class="validate">
+          <span class="helper-text" data-error="Mauvais identifiant" data-success=""></span>
         </div>
         
         <div class="col s12 center-align">
@@ -73,32 +70,42 @@
     <div class="footer-copyright">
       <div class="container">
         © 2018 Human'app
-        <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
+        <a class="grey-text text-lighten-4 right" href="#">More Links</a>
       </div>
     </div>
   </footer>
 
-
-
+  
   <script type="text/javascript" src="./js/jquery.min.js"></script>
   <script type="text/javascript" src="./js/materialize.min.js"></script>
-
-  <!-- Once the page is loaded, initializing MaterializeJS -->
+  
+  <!-- Script that is executed only when the page is fully loaded -->
   <script type="text/javascript">
+    // Initializing MaterializeJS
     M.AutoInit();
     
     // Initializing the default value to 20180000
     document.getElementById("student-id-input").value = 20180000;
     
+    // Form verification (before sending)
     document.getElementById("submit-input").addEventListener("click", e => {
       if (!checkFirstName() || !checkLastName() || !checkStudentID()) {
         alert("Formulaire mal rempli");
         e.preventDefault();
       }
+      
+      M.toast({
+        html: "<h6>Compte créé !</h6>",
+        displayLength: 6000
+      });
+      
+      window.location.replace("https://weigardium-challenge.human-app.fr/");
+      e.preventDefault();
+      e.stopPropagation();
     });
     
     
-    // Weak verification
+    // Weak student id verification
     checkStudentID = () => {
       let id = $("#student-id-input").val();
       
@@ -112,6 +119,7 @@
       return id.length === 8;
     };
     
+    // Very weak first name verification
     checkFirstName = () => {
       let firstName = $("#first-name-input").val();
       
@@ -125,6 +133,7 @@
       }
     };
     
+    // Very weak last name verification
     checkLastName = () => {
       let lastName = $("#last-name-input").val();
       
@@ -138,6 +147,7 @@
       }
     };
     
+    // To set errors faster
     setError = where => {
       if (where === "firstName") {
         $("#first-name-label").val("Erreur sur le prénom");
