@@ -39,20 +39,30 @@
   
   <main>
     <div class="container">
-      <h1>S'inscrire au défi</h1>
+      <h1 class="center-align">S'inscrire au défi</h1>
     </div>
   
     
     <div class="container row">
-      <form action="#">
-        <label for="first-name-input">Prénom</label>
-        <input type="text" placeholder="John" id="first-name-input">
+      <form action="https://weigardium-challenge.human-app.fr/user" method="post">
+        <div class="col s12 m6">
+          <label for="first-name-input" id="first-name-label">Prénom</label>
+          <input type="text" placeholder="John" id="first-name-input">
+        </div>
         
-        <label for="last-name-input">Nom de famille</label>
-        <input type="text" placeholder="Doe" id="last-name-input">
+        <div class="col s12 m6">
+          <label for="last-name-input" id="last-name-label">Nom de famille</label>
+          <input type="text" placeholder="Doe" id="last-name-input">
+        </div>
         
-        <label for="student-id-input">Numéro d'étudiant (20180xxx)</label>
-        <input type="number" placeholder="20180xxx" id="student-id-input">
+        <div class="col s12 m6 push-m3">
+          <label for="student-id-input" id="student-id-label">Numéro d'étudiant (20180xxx)</label>
+          <input type="number" placeholder="20180xxx" id="student-id-input">
+        </div>
+        
+        <div class="col s12 center-align">
+          <input type="submit" id="submit-input" class="btn btn-large">
+        </div>
       </form>
     </div>
   </main>
@@ -76,6 +86,69 @@
   <!-- Once the page is loaded, initializing MaterializeJS -->
   <script type="text/javascript">
     M.AutoInit();
+    
+    // Initializing the default value to 20180000
+    document.getElementById("student-id-input").value = 20180000;
+    
+    document.getElementById("submit-input").addEventListener("click", e => {
+      if (!checkFirstName() || !checkLastName() || !checkStudentID()) {
+        alert("Formulaire mal rempli");
+        e.preventDefault();
+      }
+    });
+    
+    
+    // Weak verification
+    checkStudentID = () => {
+      let id = $("#student-id-input").val();
+      
+      id.trim();
+      
+      if (!id.startsWith("20180")) {
+        setError("studentID");
+        return false;
+      }
+      
+      return id.length === 8;
+    };
+    
+    checkFirstName = () => {
+      let firstName = $("#first-name-input").val();
+      
+      firstName.trim();
+      
+      if (firstName.length >= 2) {
+        return true;
+      } else {
+        setError("firstName");
+        return false;
+      }
+    };
+    
+    checkLastName = () => {
+      let lastName = $("#last-name-input").val();
+      
+      lastName.trim();
+      
+      if (lastName.length >= 2) {
+        return true;
+      } else {
+        setError("lastName");
+        return false;
+      }
+    };
+    
+    setError = where => {
+      if (where === "firstName") {
+        $("#first-name-label").val("Erreur sur le prénom");
+      }
+      else if (where === "lastName") {
+        $("#last-name-label").val("Erreur sur le nom de famille");
+      }
+      else if (where === "studentID") {
+        $("#student-id-label").val("Erreur sur le numéro d'étudiant");
+      }
+    };
   </script>
 </body>
 </html>
