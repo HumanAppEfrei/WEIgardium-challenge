@@ -118,6 +118,10 @@ app.put("/user", async (req, res) => {
 });
 
 
+app.use((req, res, next) => {
+  return res.status(404).redirect("/");
+});
+
 
 
 // Listening or creating admins
