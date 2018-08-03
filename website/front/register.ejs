@@ -40,7 +40,7 @@
   
     
     <div class="container row">
-      <form action="https://weigardium-challenge.human-app.fr/user" method="post">
+      <form action="/user" method="post" id="register-form">
         <div class="col s12 m6">
           <label for="first-name-input" id="first-name-label">Prénom</label>
           <input type="text" placeholder="John" id="first-name-input">
@@ -78,6 +78,7 @@
   
   <script type="text/javascript" src="./js/jquery.min.js"></script>
   <script type="text/javascript" src="./js/materialize.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   
   <!-- Script that is executed only when the page is fully loaded -->
   <script type="text/javascript">
@@ -89,19 +90,22 @@
     
     // Form verification (before sending)
     document.getElementById("submit-input").addEventListener("click", e => {
+      e.stopPropagation();
+
       if (!checkFirstName() || !checkLastName() || !checkStudentID()) {
         alert("Formulaire mal rempli");
         e.preventDefault();
       }
-      
-      M.toast({
-        html: "<h6>Compte créé !</h6>",
-        displayLength: 6000
-      });
-      
-      window.location.replace("https://weigardium-challenge.human-app.fr/");
-      e.preventDefault();
-      e.stopPropagation();
+      else {
+        M.toast({
+          html: "<h6>Compte créé !</h6>",
+          displayLength: 6000
+        });
+
+        //document.querySelector("#register-form").submit();
+        createRequest();
+        e.preventDefault();
+      }
     });
     
     
@@ -158,6 +162,21 @@
       else if (where === "studentID") {
         $("#student-id-label").val("Erreur sur le numéro d'étudiant");
       }
+    };
+
+
+    createRequest = () => {
+      axios({
+        method: "post",
+        url: "/user",
+        data: {
+          firstName: $("#first-name-input").val(),
+          lastName: $("#last-name-input").val(),
+          studentID: $("#student-id-input").val()
+        },
+
+        headers: {"Content-Type": "application/json;charset=utf-8'"}
+      });
     };
   </script>
 </body>
