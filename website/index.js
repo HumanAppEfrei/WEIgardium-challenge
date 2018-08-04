@@ -27,12 +27,15 @@ const logger = new FancyLogger();
 
 const listeningPort = 1664;
 
-
-app.use(bodyParser.json({type: 'application/*+json'}));
+app.use(bodyParser.json("application/*+json"));
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.text({type: 'text/html'}));
+app.use(bodyParser.text('text/html'));
 
 app.use("/downloads", express.static(path.join(__dirname, 'front/public')));
+
+app.use("/js", express.static(path.join(__dirname, 'front/js')));
+app.use("/css", express.static(path.join(__dirname, "front/css")));
+app.use("/public", express.static(path.join(__dirname, "front/public")));
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, 'front'));
@@ -40,42 +43,31 @@ app.set("views", path.join(__dirname, 'front'));
 
 
 app.get('/', (req, res) => {
-  res.status(200).render("index.ejs", {message: "Camille"});
+  return res.status(200).render("index");
 });
 
 
-
-
-/*app.all("/admin", isAdmin);
-app.post("/admin", (req, res) => {
-  // TODO: This is only temporary security, need to be enhanced later on
-
-    // If authenticated
-    if (req.body.name === "admin" && req.body.password === "admin") {
-      res.status(200).json({
-        error: false,
-        code: 'S_SUCCESS',
-        message: 'Bienvenue'
-      });
-    }
-
-    // If not authenticated
-    else {
-      res.status(403).json({
-        error: true,
-        code: 'E_NOT_ALLOWED',
-        message: 'Access forbidden'
-      });
-  }
-});*/
+app.get("/register", (req, res) => {
+  return res.status(200).render("register");
+});
 
 
 
 app.post("/user", async (req, res) => {
   const data = req.body;
-  const studentID = data.studentID;
+  let studentID = data.studentID;
   const firstName = data.firstName;
   const lastName = data.lastName;
+
+  studentID = studentID.trim();
+  if (!studentID.startsWith("20180") || studentID.length !== 8) {
+    logger.addTags("post", "warning", "error", "user-creation");
+    logger.log("Attempt to create account for user #" + studentID + " but this studentID does not match the parameters set");
+    return res.status(403).json({
+      error: true,
+      message: "Essayer de bourriner notre site, c'est mal, le faites pas"
+    });
+  }
 
   if (!(data.hasOwnProperty("studentID") && data.hasOwnProperty("firstName") && data.hasOwnProperty("lastName"))) {
     logger.addTags("post", "warning", "error", "user-creation");
@@ -89,7 +81,7 @@ app.post("/user", async (req, res) => {
   if (user.exists) {
     logger.addTags("post", "warning");
     logger.log("POST request on already existing user");
-    return res.status(400).redirect("/");
+    return res.status(403).redirect("/");
   }
 
   // Creating a user
@@ -125,6 +117,10 @@ app.put("/user", async (req, res) => {
   });
 });
 
+
+app.use((req, res, next) => {
+  return res.status(404).redirect("/");
+});
 
 
 
