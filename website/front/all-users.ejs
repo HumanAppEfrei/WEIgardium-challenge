@@ -1,0 +1,41 @@
+<%- include ejs-parts/header.ejs %>
+<div class="row">
+  <div class="col s12 m3 teal">
+    <div class="container">
+      <p class="white-text">Nombre de participants:
+        <% if (locals.users) { %>
+          <%= users.length %>
+        <% } else { %>
+          0
+        <% } %>
+      </p>
+    </div>
+  </div>
+
+  <div class="col s12 m9" style="overflow: scroll">
+    <table class="striped highlight centered responsive-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Prénom</th>
+        <th>Nom</th>
+        <th>Numéro d'étudiant</th>
+        <th>Exercice 1</th>
+        <th>Exercice 2</th>
+        <th>Exercice 3</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <% if (locals.users && users !== undefined && users != null && users != {}) { %>
+      <% for (let user of users) { %>
+      <%- include ejs-parts/user-row.ejs %>
+      <% } %>
+      <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<%- include ejs-parts/footer.ejs %>
