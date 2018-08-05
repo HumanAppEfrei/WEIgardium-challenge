@@ -1,39 +1,5 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <!-- Responsive website -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="UTF-8">
-  
-  <link href="https://fonts.googleapis.com/css?family=Amatic+SC" rel="stylesheet">
-  
-  <link rel="stylesheet" href="./css/materialize.min.css">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
-  <link rel="stylesheet" href="css/style.css">
-  
-  <title>Challenge WEIGARDIUM - Human'App</title>
-</head>
-<body>
-  <header>
-    <div class="navbar-fixed">
-      <nav>
-        <div class="nav-wrapper teal lighten-1">
-          <div class="container">
-            <a href="/" class="brand-logo left hide-on-med-and-down"><b>Human'app</b></a>
-            
-            <a href="/" class="brand-logo center hide-on-large-only"><b>Human'app</b></a>
-            
-            <ul id="nav-mobile" class="left">
-              <li><a href="#"><i class="fas fa-bars"></i></a></li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-    </div>
-  </header>
+<%- include ejs-parts/header.ejs %>
 
-  
-  <main>
     <div class="container">
       <h1 class="center-align">S'inscrire au défi</h1>
     </div>
@@ -89,7 +55,7 @@
     document.getElementById("student-id-input").value = 20180000;
     
     // Form verification (before sending)
-    document.getElementById("submit-input").addEventListener("click", e => {
+    document.getElementById("submit-input").addEventListener("click", async e => {
       e.stopPropagation();
 
       if (!checkFirstName() || !checkLastName() || !checkStudentID()) {
@@ -97,13 +63,7 @@
         e.preventDefault();
       }
       else {
-        M.toast({
-          html: "<h6>Compte créé !</h6>",
-          displayLength: 6000
-        });
-
-        //document.querySelector("#register-form").submit();
-        createRequest();
+        await createRequest();
         e.preventDefault();
       }
     });
@@ -165,7 +125,7 @@
     };
 
 
-    createRequest = () => {
+    createRequest = async () => {
       axios({
         method: "post",
         url: "/user",
@@ -176,7 +136,11 @@
         },
 
         headers: {"Content-Type": "application/json;charset=utf-8'"}
-      });
+      })
+      .then(data => {
+        console.log(data);
+      })
+      .catch(console.error)
     };
   </script>
 </body>

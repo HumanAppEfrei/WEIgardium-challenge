@@ -101,6 +101,20 @@ class User {
   }
 
 
+  static async getAll () {
+    await checkConnection();
+
+    let [rows, fields] = await db.execute("SELECT * FROM User ORDER BY id");
+    let users = [];
+
+    for (let row of rows) {
+      users.push(new User(row));
+    }
+
+    return users;
+  }
+
+
   static async update (user, exs, cb = () => {}) {
     await checkConnection();
 
@@ -145,10 +159,7 @@ class User {
       .then(response => {
         logger.addTag("user-creation");
         logger.log("User created: " + this.fullName + ' (' + this.studentID + ')');
-        return res.status(200).json({
-          error: false,
-          message: "User created"
-        });
+        return res.status(200).redirect("/");
       })
       .catch(err => {
         logger.addTags("warning", "error");
