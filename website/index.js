@@ -52,6 +52,13 @@ app.get("/register", (req, res) => {
 });
 
 
+app.get("/all-users", async (req, res) => {
+  let users = await User.getAll();
+
+  return res.status(200).render("all-users", {users: users});
+});
+
+
 
 app.post("/user", async (req, res) => {
   const data = req.body;
