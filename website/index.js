@@ -2,6 +2,8 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
+const favicon = require("serve-favicon");
+const cors = require("cors");
 
 const db = require("./config/db");
 const User = require("./models/user");
@@ -9,18 +11,21 @@ const User = require("./models/user");
 const isAdmin = require("./middlewares/isAdmin");
 
 const FancyLogger = require("simple-fancy-log");
-FancyLogger.createTag({name: "listening", content: "Listening", color: "yellow"});
-FancyLogger.createTag({name: "user-creation", content: "User creation", color: "green"});
-FancyLogger.createTag({name: "user-creation-success", content: "User created", color: "green"})
-FancyLogger.createTag({name: "error", content: "ERROR", color: "red"});
-FancyLogger.createTag({name: "warning", content: "Warning", color: "yellow", bgColor: "red"});
-FancyLogger.createTag({name: "update", content: "User update", color: "cyan"});
-FancyLogger.createTag({name: "exercise", content: "Exercise", color: "blue"});
-FancyLogger.createTag({name: "exercise-success", content: "Exercise Success", color: "white", bgColor: "green"});
-FancyLogger.createTag({name: "post", content: "POST request"});
-FancyLogger.createTag({name: "put", content: "PUT request"});
-FancyLogger.createTag({name: "admin", content: "Admin", color: "yellow"});
-FancyLogger.createTag({name: "admin-creation", content: "Admin Creation", color: "yellow"});
+createTags = () => {
+  FancyLogger.createTag({name: "listening", content: "Listening", color: "yellow"});
+  FancyLogger.createTag({name: "user-creation", content: "User creation", color: "green"});
+  FancyLogger.createTag({name: "user-creation-success", content: "User created", color: "green"})
+  FancyLogger.createTag({name: "error", content: "ERROR", color: "red"});
+  FancyLogger.createTag({name: "warning", content: "Warning", color: "yellow", bgColor: "red"});
+  FancyLogger.createTag({name: "update", content: "User update", color: "cyan"});
+  FancyLogger.createTag({name: "exercise", content: "Exercise", color: "blue"});
+  FancyLogger.createTag({name: "exercise-success", content: "Exercise Success", color: "white", bgColor: "green"});
+  FancyLogger.createTag({name: "post", content: "POST request"});
+  FancyLogger.createTag({name: "put", content: "PUT request"});
+  FancyLogger.createTag({name: "admin", content: "Admin", color: "yellow"});
+  FancyLogger.createTag({name: "admin-creation", content: "Admin Creation", color: "yellow"});
+};
+createTags();
 const logger = new FancyLogger();
 
 
@@ -37,10 +42,13 @@ app.use("/js", express.static(path.join(__dirname, 'front/js')));
 app.use("/css", express.static(path.join(__dirname, "front/css")));
 app.use("/public", express.static(path.join(__dirname, "front/public")));
 
+app.use(favicon(path.join(__dirname, "front", "public", "logo.png")));
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, 'front'));
 
 
+app.use(cors());
 
 app.get('/', (req, res) => {
   return res.status(200).render("index");
@@ -58,6 +66,10 @@ app.get("/all-users", async (req, res) => {
   return res.status(200).render("all-users", {users: users});
 });
 
+
+app.get("/submit", (req, res) => {
+  return res.status(200).render("submit");
+});
 
 
 app.post("/user", async (req, res) => {
