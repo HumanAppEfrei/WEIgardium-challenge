@@ -69,6 +69,11 @@ app.get("/all-users", async (req, res) => {
   return res.status(200).render("all-users", {users: users});
 });
 
+app.get("/all-users/ex/:exNumber", async (req, res) => {
+  let users = await User.getAllEx(req.params.exNumber);
+  return res.status(200).render("all-users-ex-x", {users: users});
+});
+
 
 app.get("/submit", (req, res) => {
   return res.status(200).render("submit");

@@ -105,6 +105,19 @@ class User {
     return users;
   }
 
+  static async getAllEx (ex) {
+    if (isNaN(ex) || ex <= 0 || ex >= 4)
+      return null;
+
+    let [rows, fields] = await pool.query("SELECT * FROM Ex" + ex);
+
+    let users = [];
+    for (let row of rows)
+      users.push(new User(row));
+
+    return users;
+  }
+
 
   static async update (user, exs, cb = (err) => {}) {
     let updated = false;

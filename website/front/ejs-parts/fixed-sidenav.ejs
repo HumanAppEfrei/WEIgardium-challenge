@@ -1,0 +1,29 @@
+<ul id="slide-out" class="sidenav sidenav-fixed teal lighten-1">
+  <div>
+    <li>
+      Nombre d'utilisateurs :
+      <% if (locals.users) %>
+      <%= users.length %>
+    </li>
+  </div>
+  <div class="row hoverable">
+    <li>
+      <a href="/all-users" class="white-text" id="users-nav">Utilisateurs</a>
+    </li>
+  </div>
+  <div class="row hoverable">
+    <li>
+      <a href="/all-users/ex/1" class="white-text" id="ex1-nav">Exercice 1</a>
+    </li>
+  </div>
+  <div class="row hoverable">
+    <li>
+      <a href="/all-users/ex/2" class="white-text" id="ex2-nav">Exercice 2</a>
+    </li>
+  </div>
+  <div class="row hoverable">
+    <li>
+      <a href="/all-users/ex/3" class="white-text" id="ex3-nav">Exercice 3</a>
+    </li>
+  </div>
+</ul>
