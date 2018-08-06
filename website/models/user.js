@@ -3,16 +3,6 @@ let pool = require("./../config/db").pool;
 const FancyLogger = require("simple-fancy-log");
 const logger = new FancyLogger();
 
-checkConnection = async () => {
-// Checking connection before performing any request
-  if (!db)
-    db = require("./../config/db").connection;
-  if (!db) { // If still no connection
-    db = await require("./../config/db").connect();
-    require("./../config/db").connection = db;
-  }
-};
-
 class User {
   constructor (row, json) {
     if (row != null && row !== undefined)
@@ -79,33 +69,61 @@ class User {
    * @return {Promise<module.User>} Requested user, undefined if not found or no precise enough criteria were passed
    */
   static async findOne (user, cb = () => {}) {
-    await checkConnection();
 
-    // Exploring the passed parameters
     let [rows, fields] = [undefined, undefined];
-    if (user.hasOwnProperty("id"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE id = ? LIMIT 1", [user.id]);
+    let user = null;
 
-    else if (user.hasOwnProperty("studentID"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE student_id = ? LIMIT 1", [user.studentID]);
+    await pool.getConnection(async (err, con) => {
+      if (err) {
+        logger.addTag("error");
+        logger.log("Unable to establish connection");
+        return;
+      }
 
-    else if (user.hasOwnProperty("firstName") && user.hasOwnProperty("lastName"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE first_name = ? AND last_name = ? LIMIT 1", [user.firstName, user.lastName]);
+      // Exploring the passed parameters
+      if (user.hasOwnProperty("id"))
+        [rows, fields] = await con.promise().query("SELECT * FROM User WHERE id = ? LIMIT 1", [user.id]);
 
-    // If no precise enough criteria was passed
-    else {
-      return new User(undefined);
-    }
+      else if (user.hasOwnProperty("studentID"))
+        [rows, fields] = await con.promise().query("SELECT * FROM User WHERE student_id = ? LIMIT 1", [user.studentID]);
 
-    // Returning the newly built user
-    return new User(rows[0]);
+      else if (user.hasOwnProperty("firstName") && user.hasOwnProperty("lastName"))
+        [rows, fields] = await con.promise().query("SELECT * FROM User WHERE first_name = ? AND last_name = ? LIMIT 1", [user.firstName, user.lastName]);
+
+      // If no precise enough criteria was passed
+      else {
+        user = new User(undefined);
+        pool.releaseConnection(con);
+
+        return;
+      }
+
+      // Returning the newly built user
+      user = new User(rows[0]);
+
+      pool.releaseConnection(con);
+    });
+
+    if (user !== null)
+      return user;
+    return null;
   }
 
 
   static async getAll () {
-    await checkConnection();
+    let rows = null;
+    let fields = null;
 
-    let [rows, fields] = await db.execute("SELECT * FROM User ORDER BY id");
+    await pool.getConnection (async (err, con) => {
+      if (err) {
+        logger.addTag("error");
+        logger.log("Unable to establish connection");
+        return;
+      }
+
+      [rows, fields] = await con.promise().query("SELECT * FROM User ORDER BY id");
+      pool.releaseConnection(con);
+    });
     let users = [];
 
     for (let row of rows) {
@@ -117,8 +135,6 @@ class User {
 
 
   static async update (user, exs, cb = (err) => {}) {
-    await checkConnection();
-
     let userToUpdate = await this.findOne(user);
 
     if (!userToUpdate.exists)
@@ -132,12 +148,30 @@ class User {
       await pool.getConnection (async (err, con) => {
         if (err) {
           logger.addTag("error");
-          logger.log("No connection available");
+          logger.log("Unable to establish connection to database");
           return;
         }
 
-        await con.query("UPDATE User SET ex_3 = 1 WHERE id = ?", [userToUpdate.id]);
-        await con.query("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+        con.promise().query("UPDATE User SET ex_3 = 1 WHERE id = ?", [userToUpdate.id])
+          .then(async res => {
+            con.promise().query("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+              .then(async res2 => {
+                updated = true;
+              })
+              .catch(err => {
+                logger.addTag("error");
+                logger.log("Error performing request to database");
+                pool.releaseConnection(con);
+                return cb({error: true, message: "Erreur de connexion"});
+              });
+            pool.releaseConnection(con);
+          })
+          .catch(err => {
+            logger.addTag("error");
+            logger.log("Error performing request to database");
+            pool.releaseConnection(con);
+            return cb({error: true, message: "Erreur de connexion"});
+          });
         updated = true;
         pool.releaseConnection(con);
       });
@@ -157,12 +191,30 @@ class User {
       await pool.getConnection (async (err, con) => {
         if (err) {
           logger.addTag("error");
-          logger.log("No connection available");
+          logger.log("Unable to establish connection to database");
           return;
         }
 
-        await con.query("UPDATE User SET ex_2 = 1 WHERE id = ?", [userToUpdate.id]);
-        await con.query("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+        con.promise().query("UPDATE User SET ex_2 = 1 WHERE id = ?", [userToUpdate.id])
+          .then(async res => {
+            con.promise().query("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+              .then(async res2 => {
+                updated = true;
+              })
+              .catch(err => {
+                logger.addTag("error");
+                logger.log("Error performing request to database");
+                pool.releaseConnection(con);
+                return cb({error: true, message: "Erreur de connexion"});
+              });
+            pool.releaseConnection(con);
+          })
+          .catch(err => {
+            logger.addTag("error");
+            logger.log("Error performing request to database");
+            pool.releaseConnection(con);
+            return cb({error: true, message: "Erreur de connexion"});
+          });
         updated = true;
         pool.releaseConnection(con);
       });
@@ -180,14 +232,30 @@ class User {
       await pool.getConnection (async (err, con) => {
         if (err) {
           logger.addTag("error");
-          logger.log("No connection available");
+          logger.log("Unable to establish connection to database");
           return;
         }
 
-        await con.query("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id]);
-        await con.query("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
-        updated = true;
-        pool.releaseConnection(con);
+        con.promise().query("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id])
+          .then(async res => {
+            con.promise().query("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+              .then(async res2 => {
+                updated = true;
+              })
+              .catch(err => {
+                logger.addTag("error");
+                logger.log("Error performing request to database");
+                pool.releaseConnection(con);
+                return cb({error: true, message: "Erreur de connexion"});
+              });
+            pool.releaseConnection(con);
+          })
+          .catch(err => {
+            logger.addTag("error");
+            logger.log("Error performing request to database");
+            pool.releaseConnection(con);
+            return cb({error: true, message: "Erreur de connexion"});
+          });
       });
       if (updated)
         return cb({error: false, message: "Profil mis à jour !"});
@@ -202,21 +270,29 @@ class User {
   /** Function that creates a User entry in the User table of the database
    */
   async create (req, res) {
-    await checkConnection();
-
     logger.addTags("post", "user-creation");
 
-    await db.execute("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?)", [this.row.first_name, this.row.last_name, this.row.student_id])
-      .then(response => {
-        logger.addTag("user-creation");
-        logger.log("User created: " + this.fullName + ' (' + this.studentID + ')');
-        return res.status(200).redirect("/");
-      })
-      .catch(err => {
-        logger.addTags("warning", "error");
-        logger.log("Unable to create user " + this.fullName + ' (' + this.studentID + ')');
-        return res.status(400).json({error: true});
-      });
+    await pool.getConnection(async (err, con) => {
+      if (err) {
+        logger.addTag("error");
+        logger.log("Unable to establish connection to database");
+        return;
+      }
+
+      con.promise().query("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?)", [this.row.first_name, this.row.last_name, this.row.student_id])
+        .then(res => {
+          logger.addTag("user-creation");
+          logger.log("User created: " + this.fullName + " (" + this.studentID + ")");
+          pool.releaseConnection(con);
+          return res.status(200).redirect("/");
+        })
+        .catch(err => {
+          logger.addTags("warning", "error");
+          logger.log("Unable to create user " + this.fullName + " (" + this.studentID + ")");
+          pool.releaseConnection(con);
+          return res.status(400).json({error: true});
+        });
+    });
   }
 }
 
