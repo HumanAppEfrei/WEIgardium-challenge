@@ -24,17 +24,30 @@ connect = async () => {
 
   console.log("Connected to database");
 
-  pool = mysql2.createPool({
+  pool = mysql.createPool({
     host: connectionData.host,
     database: connectionData.database,
     user: connectionData.user,
     password: connectionData.password,
-    connectionLimit: 20
+    connectionLimit: 10
   });
 
   return connection;
 };
 
+
+getPool = () => {
+  if (pool === null)
+    pool = mysql.createPool({
+      host: connectionData.host,
+      database: connectionData.database,
+      user: connectionData.user,
+      password: connectionData.password,
+      connectionLimit: 10
+    });
+
+  return pool;
+};
 
 
 
@@ -45,4 +58,4 @@ module.exports.connection = connection;
 module.exports.connected = connected;
 module.exports.connectionData = connectionData;
 module.exports.mysql = mysql;
-module.exports.pool = pool;
+module.exports.pool = getPool();

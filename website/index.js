@@ -100,7 +100,7 @@ app.post("/user", async (req, res) => {
   let user = await User.findOne({studentID: studentID});
 
   // If the user exists
-  if (user.exists) {
+  if (user.row !== undefined) {
     logger.addTags("post", "warning");
     logger.log("POST request on already existing user");
     return res.status(403).redirect("/");
@@ -117,14 +117,17 @@ app.post("/user", async (req, res) => {
       ex_3: false
     }
   });
-  await user.create(req, res);
+  let created = await user.create();
+  if (created)
+    return res.status(200).redirect("/");
+  return res.status(400).json({error: true, message: "Identifiant élève déjà utilisé"});
 });
 
 
 app.post("/submit", async (req, res) => {
   let user = await User.findOne({studentID: req.body.studentID});
 
-  if (user.row === undefined)
+  if (user == null || user.row === undefined)
     return res.status(404).json({error: true, message: "Utilisateur non trouvé (numéro d'étudiant " + req.body.studentID + ")"});
 
   if (user.firstName !== req.body.firstName || user.lastName !== req.body.lastName)
@@ -180,25 +183,9 @@ app.use((req, res, next) => {
 
 
 
-// Listening or creating admins
+app.listen(listeningPort, async () => {
+  db.connection = await db.connect();
 
-let newAdmin = false;
-process.argv.forEach((val, index, array) => {
-  if (val === "--create-admin") {
-    logger.addTags("admin", "admin-creation");
-    logger.log("Creating an admin");
-    newAdmin = true;
-  }
+  logger.addTag("listening");
+  logger.log(`Listening on port ${listeningPort}`);
 });
-
-if (newAdmin) {
-  require("./config/admin").create(process.exit);
-}
-else {
-  app.listen(listeningPort, async () => {
-    db.connection = await db.connect();
-
-    logger.addTag("listening");
-    logger.log(`Listening on port ${listeningPort}`);
-  });
-}
