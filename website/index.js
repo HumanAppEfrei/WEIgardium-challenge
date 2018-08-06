@@ -2,6 +2,8 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
+const favicon = require("serve-favicon");
+const cors = require("cors");
 
 const db = require("./config/db");
 const User = require("./models/user");
@@ -9,18 +11,24 @@ const User = require("./models/user");
 const isAdmin = require("./middlewares/isAdmin");
 
 const FancyLogger = require("simple-fancy-log");
-FancyLogger.createTag({name: "listening", content: "Listening", color: "yellow"});
-FancyLogger.createTag({name: "user-creation", content: "User creation", color: "green"});
-FancyLogger.createTag({name: "user-creation-success", content: "User created", color: "green"})
-FancyLogger.createTag({name: "error", content: "ERROR", color: "red"});
-FancyLogger.createTag({name: "warning", content: "Warning", color: "yellow", bgColor: "red"});
-FancyLogger.createTag({name: "update", content: "User update", color: "cyan"});
-FancyLogger.createTag({name: "exercise", content: "Exercise", color: "blue"});
-FancyLogger.createTag({name: "exercise-success", content: "Exercise Success", color: "white", bgColor: "green"});
-FancyLogger.createTag({name: "post", content: "POST request"});
-FancyLogger.createTag({name: "put", content: "PUT request"});
-FancyLogger.createTag({name: "admin", content: "Admin", color: "yellow"});
-FancyLogger.createTag({name: "admin-creation", content: "Admin Creation", color: "yellow"});
+createTags = () => {
+  FancyLogger.createTag({name: "listening", content: "Listening", color: "yellow"});
+  FancyLogger.createTag({name: "user-creation", content: "User creation", color: "green"});
+  FancyLogger.createTag({name: "user-creation-success", content: "User created", color: "green"})
+  FancyLogger.createTag({name: "error", content: "ERROR", color: "red"});
+  FancyLogger.createTag({name: "warning", content: "Warning", color: "yellow", bgColor: "red"});
+  FancyLogger.createTag({name: "update", content: "User update", color: "cyan"});
+  FancyLogger.createTag({name: "exercise", content: "Exercise", color: "blue"});
+  FancyLogger.createTag({name: "exercise-success", content: "Exercise Success", color: "white", bgColor: "green"});
+  FancyLogger.createTag({name: "post", content: "POST request"});
+  FancyLogger.createTag({name: "user-update", content: "User update", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex1", content: "Ex 1", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex2", content: "Ex 2", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex3", content: "Ex 3", color: "yellow"});
+  FancyLogger.createTag({name: "admin", content: "Admin", color: "yellow"});
+  FancyLogger.createTag({name: "admin-creation", content: "Admin Creation", color: "yellow"});
+};
+createTags();
 const logger = new FancyLogger();
 
 
@@ -37,10 +45,13 @@ app.use("/js", express.static(path.join(__dirname, 'front/js')));
 app.use("/css", express.static(path.join(__dirname, "front/css")));
 app.use("/public", express.static(path.join(__dirname, "front/public")));
 
+app.use(favicon(path.join(__dirname, "front", "public", "logo.png")));
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, 'front'));
 
 
+app.use(cors());
 
 app.get('/', (req, res) => {
   return res.status(200).render("index");
@@ -58,6 +69,10 @@ app.get("/all-users", async (req, res) => {
   return res.status(200).render("all-users", {users: users});
 });
 
+
+app.get("/submit", (req, res) => {
+  return res.status(200).render("submit");
+});
 
 
 app.post("/user", async (req, res) => {
@@ -85,7 +100,7 @@ app.post("/user", async (req, res) => {
   let user = await User.findOne({studentID: studentID});
 
   // If the user exists
-  if (user.exists) {
+  if (user.row !== undefined) {
     logger.addTags("post", "warning");
     logger.log("POST request on already existing user");
     return res.status(403).redirect("/");
@@ -102,26 +117,63 @@ app.post("/user", async (req, res) => {
       ex_3: false
     }
   });
-  await user.create(req, res);
+  let created = await user.create();
+  if (created)
+    return res.status(200).redirect("/");
+  return res.status(400).json({error: true, message: "Identifiant élève déjà utilisé"});
 });
 
 
-app.put("/user", async (req, res) => {
-  const data = req.body;
-  const studentID = data.studentID;
-  let user = await User.findOne({studentID: studentID});
+app.post("/submit", async (req, res) => {
+  let user = await User.findOne({studentID: req.body.studentID});
 
-  if (!user.exists) {
-    logger.addTags("put", "warning");
-    logger.log("PUT request on non existing user");
-    return res.status(404).redirect("/");
+  if (user == null || user.row === undefined)
+    return res.status(404).json({error: true, message: "Utilisateur non trouvé (numéro d'étudiant " + req.body.studentID + ")"});
+
+  if (user.firstName !== req.body.firstName || user.lastName !== req.body.lastName)
+    return res.status(401).json({error: true, message: "Erreur d'authentification"});
+
+  switch (req.body.exercise) {
+    case 1:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex1");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: true, ex2: user.done.ex2, ex3: user.done.ex3}, up => {
+          if (up.error)
+            res.status(400).json(up);
+          res.status(200).json(up);
+        });
+        return;
+      }
+      break;
+
+    case 2:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex2");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: user.done.ex1, ex2: true, ex3: user.done.ex3}, up => {
+          if (up.error)
+            return res.status(400).json(up);
+          return res.status(200).json(up);
+        });
+      }
+      break;
+
+    case 3:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex3");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: user.done.ex1, ex2: user.done.ex2, ex3: true}, up => {
+          if (up.error)
+            return res.status(400).json(up);
+          return res.status(200).json(up);
+        });
+      }
+      break;
+
+    default:
+      return res.status(400).json({error: true, message: "T'es un petit malin, toi ;)"});
   }
-
-  await User.update({studentID: studentID}, {
-    ex1: data.ex1,
-    ex2: data.ex2,
-    ex3: data.ex3
-  });
 });
 
 
@@ -131,25 +183,9 @@ app.use((req, res, next) => {
 
 
 
-// Listening or creating admins
+app.listen(listeningPort, async () => {
+  db.connection = await db.connect();
 
-let newAdmin = false;
-process.argv.forEach((val, index, array) => {
-  if (val === "--create-admin") {
-    logger.addTags("admin", "admin-creation");
-    logger.log("Creating an admin");
-    newAdmin = true;
-  }
+  logger.addTag("listening");
+  logger.log(`Listening on port ${listeningPort}`);
 });
-
-if (newAdmin) {
-  require("./config/admin").create(process.exit);
-}
-else {
-  app.listen(listeningPort, async () => {
-    db.connection = await db.connect();
-
-    logger.addTag("listening");
-    logger.log(`Listening on port ${listeningPort}`);
-  });
-}

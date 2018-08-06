@@ -1,0 +1,59 @@
+<%- include ejs-parts/header.ejs %>
+
+<div class="container row">
+  <h1 class="center-align">Soumettre une réponse</h1>
+
+  <form action="#">
+    <div class="row">
+      <!-- Exercise -->
+      <div class="input-field col s12 m6 center-align">
+        <select name="exercise-select" id="exercise-select">
+          <option value="" disabled selected>Choisissez l'exercice à envoyer</option>
+          <option value="1">Exercice 1</option>
+          <option value="2">Exercice 2</option>
+          <option value="3">Exercice 3</option>
+        </select>
+      </div>
+
+      <!-- Student ID -->
+      <div class="input-field col s12 m6 center-align">
+        <input type="number" id="student-id-input" placeholder="20180xxx" class="validate">
+        <span class="helper-text" data-error="Numéro non reconnu"></span>
+        <label for="student-id-input">Numéro d'étudiant (20180xxx)</label>
+      </div>
+    </div>
+
+    <!-- First name and last name -->
+    <div class="row">
+      <div class="input-field col s12 m6 center-align">
+        <input type="text" id="firstname-input" placeholder="John">
+        <label for="firstname-input">Prénom</label>
+      </div>
+      <div class="input-field col s12 m6 center-align">
+        <input type="text" id="lastname-input" placeholder="Doe">
+        <label for="lastname-input">Nom</label>
+      </div>
+    </div>
+    
+    <!-- Answer -->
+    <div class="row">
+      <div class="input-field col s12 center-align">
+        <textarea name="answer-area" class="materialize-textarea" id="answer-area" cols="30" rows="10"></textarea>
+        <label for="answer-area">Réponse à soumettre</label>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="row btn btn-block" id="submit-button">
+      Envoyer
+    </div>
+  </form>
+</div>
+
+
+<script type="text/javascript" src="./js/jquery.min.js"></script>
+<script type="text/javascript" src="./js/materialize.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="text/javascript" src="./js/submitter.js"></script>
+
+<%- include ejs-parts/footer.ejs %>

@@ -1,16 +1,7 @@
 let db = require("./../config/db").connection;
+let pool = require("./../config/db").pool;
 const FancyLogger = require("simple-fancy-log");
 const logger = new FancyLogger();
-
-checkConnection = async () => {
-// Checking connection before performing any request
-  if (!db)
-    db = require("./../config/db").connection;
-  if (!db) { // If still no connection
-    db = await require("./../config/db").connect();
-    require("./../config/db").connection = db;
-  }
-};
 
 class User {
   constructor (row, json) {
@@ -67,7 +58,11 @@ class User {
   }
 
   get exists () {
-    return this.row !== undefined;
+    return (async () => {
+      if (this.row !== undefined)
+        return (await User.findOne({studentID: this.studentID}) === null);
+      return false;
+    })();
   }
 
 
@@ -75,36 +70,32 @@ class User {
    *
    * @param user {Object} JSON Object that contains the search parameters, can contain (one or more) ['id', 'studentID', 'firstName' AND 'lastName']
    * @param cb {function (err, User)} Callback function
-   * @return {Promise<module.User>} Requested user, undefined if not found or no precise enough criteria were passed
+   * @return {Promise<User>} Requested user, undefined if not found or no precise enough criteria were passed
    */
   static async findOne (user, cb = () => {}) {
-    await checkConnection();
 
-    // Exploring the passed parameters
     let [rows, fields] = [undefined, undefined];
+
     if (user.hasOwnProperty("id"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE id = ? LIMIT 1", [user.id]);
+      [rows, fields] = await pool.query("SELECT * FROM User WHERE id = ? LIMIT 1", [user.id]);
 
     else if (user.hasOwnProperty("studentID"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE student_id = ? LIMIT 1", [user.studentID]);
+      [rows, fields] = await pool.query("SELECT * FROM User WHERE student_id = ? LIMIT 1", [user.studentID]);
 
     else if (user.hasOwnProperty("firstName") && user.hasOwnProperty("lastName"))
-      [rows, fields] = await db.execute("SELECT * FROM User WHERE first_name = ? AND last_name = ? LIMIT 1", [user.firstName, user.lastName]);
+      [rows, fields] = await pool.query("SELECT * FROM User WHERE first_name = ? AND last_name = ? LIMIT 1", [user.firstName, user.lastName]);
 
-    // If no precise enough criteria was passed
     else {
-      return new User(undefined);
+      return null;
     }
 
-    // Returning the newly built user
     return new User(rows[0]);
   }
 
 
   static async getAll () {
-    await checkConnection();
+    let [rows, fields] = await pool.query("SELECT * FROM User ORDER BY id");
 
-    let [rows, fields] = await db.execute("SELECT * FROM User ORDER BY id");
     let users = [];
 
     for (let row of rows) {
@@ -115,57 +106,61 @@ class User {
   }
 
 
-  static async update (user, exs, cb = () => {}) {
-    await checkConnection();
-
-    let userToUpdate = this.findOne(user);
+  static async update (user, exs, cb = (err) => {}) {
+    let updated = false;
+    let userToUpdate = await this.findOne(user);
 
     if (!userToUpdate.exists)
       return;
 
-    if (exs.ex3 && !userToUpdate.done.ex3) {
+    // Seems to be the correct way to do it
+    if (exs.ex3 && !userToUpdate.done.ex3 && userToUpdate.done.ex2 && userToUpdate.done.ex1) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
-      await db.execute("UPDATE User SET ex_3 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      logger.log("User " + userToUpdate.fullName + " completed ex 3");
+
+      await pool.query("UPDATE User SET ex_3 = 1 WHERE id = ?", [userToUpdate.id]);
+      await pool.query("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      updated = true;
     }
 
     if (exs.ex2 && !userToUpdate.done.ex2) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
-      await db.execute("UPDATE User SET ex_2 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      logger.log("User " + userToUpdate.fullName + " completed ex 2");
+      await pool.query("UPDATE User SET ex_2 = 1 WHERE id = ?", [userToUpdate.id]);
+      await pool.query("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      updated = true;
     }
 
     if (exs.ex1 && !userToUpdate.done.ex1) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
-      await db.execute("UPDATE User SET ex_1 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      logger.log("User " + userToUpdate.fullName + " completed ex 2");
+      await pool.query("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id]);
+      await pool.query("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      updated = true;
     }
 
-    cb();
+      if (updated)
+        return cb({error: false, message: "Profil mis à jour !"});
+      else
+        return cb({error: true, message: "Impossible de mettre le profil à jour"});
   }
 
 
   /** Function that creates a User entry in the User table of the database
    */
-  async create (req, res) {
-    await checkConnection();
+  async create () {
+    let exists = await this.exists;
 
-    logger.addTags("post", "user-creation");
+    // Avoiding creating multiple accounts
+    if (exists)
+      return false;
 
-    await db.execute("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?)", [this.row.first_name, this.row.last_name, this.row.student_id])
-      .then(response => {
-        logger.addTag("user-creation");
-        logger.log("User created: " + this.fullName + ' (' + this.studentID + ')');
-        return res.status(200).redirect("/");
-      })
-      .catch(err => {
-        logger.addTags("warning", "error");
-        logger.log("Unable to create user " + this.fullName + ' (' + this.studentID + ')');
-        return res.status(400).json({error: true});
-      });
+    // Creating the user
+    await pool.query("INSERT INTO User (first_name, last_name, student_id) VALUES (?, ?, ?)", [this.firstName, this.lastName, this.studentID]);
+
+    logger.addTag("user-creation");
+    logger.log("User created: " + this.fullName + " (" + this.studentID + ")");
+    return true;
   }
 }
 
