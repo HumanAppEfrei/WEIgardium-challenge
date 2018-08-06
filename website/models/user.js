@@ -125,10 +125,11 @@ class User {
       return;
 
     if (exs.ex3 && !userToUpdate.done.ex3 && userToUpdate.done.ex2 && userToUpdate.done.ex1) {
+      let updated = false;
       logger.addTags("update", "exercise", "exercise-success");
       logger.log("User " + userToUpdate.fullName + " completed ex 3");
 
-      /*await pool.getConnection (async (err, con) => {
+      await pool.getConnection (async (err, con) => {
         if (err) {
           logger.addTag("error");
           logger.log("No connection available");
@@ -137,29 +138,61 @@ class User {
 
         await con.query("UPDATE User SET ex_3 = 1 WHERE id = ?", [userToUpdate.id]);
         await con.query("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
-      });*/
-
-      await db.execute("UPDATE User SET ex_3 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
-      return cb({error: false, message: "Profil mis à jour !"});
+        updated = true;
+        pool.releaseConnection(con);
+      });
+      if (updated)
+        return cb({error: false, message: "Profil mis à jour !"});
+      else
+        return cb({error: true, message: "Impossible de mettre le profil à jour"});
     } else if (exs.ex3 && (!userToUpdate.done.ex2 || !userToUpdate.done.ex1)) {
       return cb({error: true, message: "Vous devez d'abord compléter les exercices 1 et 2 pour répondre au 3"});
     }
 
     if (exs.ex2 && !userToUpdate.done.ex2) {
+      let updated = false;
       logger.addTags("update", "exercise", "exercise-success");
       logger.log("User " + userToUpdate.fullName + " completed ex 2");
-      await db.execute("UPDATE User SET ex_2 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
-      return cb({error: false, message: "Profil mis à jour !"});
+
+      await pool.getConnection (async (err, con) => {
+        if (err) {
+          logger.addTag("error");
+          logger.log("No connection available");
+          return;
+        }
+
+        await con.query("UPDATE User SET ex_2 = 1 WHERE id = ?", [userToUpdate.id]);
+        await con.query("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+        updated = true;
+        pool.releaseConnection(con);
+      });
+      if (updated)
+        return cb({error: false, message: "Profil mis à jour !"});
+      else
+        return cb({error: true, message: "Impossible de mettre le profil à jour"});
     }
 
     if (exs.ex1 && !userToUpdate.done.ex1) {
+      let updated = false;
       logger.addTags("update", "exercise", "exercise-success");
       logger.log("User " + userToUpdate.fullName + " completed ex 1");
-      await db.execute("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id]);
-      await db.execute("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
-      return cb({error: false, message: "Profil mis à jour !"});
+
+      await pool.getConnection (async (err, con) => {
+        if (err) {
+          logger.addTag("error");
+          logger.log("No connection available");
+          return;
+        }
+
+        await con.query("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id]);
+        await con.query("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+        updated = true;
+        pool.releaseConnection(con);
+      });
+      if (updated)
+        return cb({error: false, message: "Profil mis à jour !"});
+      else
+        return cb({error: true, message: "Impossible de mettre le profil à jour"});
     }
 
     return cb({error: false, message: "Exercice déjà terminé !"});
