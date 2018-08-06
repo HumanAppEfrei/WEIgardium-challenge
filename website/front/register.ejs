@@ -1,11 +1,12 @@
 <%- include ejs-parts/header.ejs %>
 
-    <div class="container">
+    <div class="container row hide-on-small-and-down" style="padding-top: 20vh;"></div>
+
+    <div class="container row">
       <h1 class="center-align">S'inscrire au défi</h1>
     </div>
-  
-    
-    <div class="container row">
+
+    <div class="container row valign-wrapper">
       <form action="/user" method="post" id="register-form">
         <div class="col s12 m6">
           <label for="first-name-input" id="first-name-label">Prénom</label>
