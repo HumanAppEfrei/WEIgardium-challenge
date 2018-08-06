@@ -1,17 +1,3 @@
-/* MySQL command to create the User table
-  CREATE TABLE User (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
-    first_name VARCHAR(250) NOT NULL,
-    last_name VARCHAR(250) NOT NULL,
-    student_id INT UNSIGNED NOT NULL UNIQUE,
-    ex_1 BOOLEAN NOT NULL DEFAULT false,
-    ex_2 BOOLEAN NOT NULL DEFAULT false,
-    ex_3 BOOLEAN NOT NULL DEFAULT false,
-    PRIMARY KEY (id)
-  )
-  ENGINE=INNODB;
-*/
-
 /** Settings for database connection
  *
  * @type {{host: string, database: string, user: string, password: string}}
@@ -24,11 +10,11 @@ const connectionData = {
 };
 
 
-
-
 const mysql = require("mysql2/promise");
+const mysql2 = require("mysql2");
 let connection = null;
 let connected = null;
+let pool = null;
 
 
 // Connecting to the database
@@ -38,8 +24,18 @@ connect = async () => {
 
   console.log("Connected to database");
 
+  pool = mysql2.createPool({
+    host: connectionData.host,
+    database: connectionData.database,
+    user: connectionData.user,
+    password: connectionData.password,
+    connectionLimit: 20
+  });
+
   return connection;
 };
+
+
 
 
 
@@ -49,3 +45,4 @@ module.exports.connection = connection;
 module.exports.connected = connected;
 module.exports.connectionData = connectionData;
 module.exports.mysql = mysql;
+module.exports.pool = pool;

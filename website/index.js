@@ -21,7 +21,10 @@ createTags = () => {
   FancyLogger.createTag({name: "exercise", content: "Exercise", color: "blue"});
   FancyLogger.createTag({name: "exercise-success", content: "Exercise Success", color: "white", bgColor: "green"});
   FancyLogger.createTag({name: "post", content: "POST request"});
-  FancyLogger.createTag({name: "put", content: "PUT request"});
+  FancyLogger.createTag({name: "user-update", content: "User update", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex1", content: "Ex 1", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex2", content: "Ex 2", color: "yellow"});
+  FancyLogger.createTag({name: "user-update-ex3", content: "Ex 3", color: "yellow"});
   FancyLogger.createTag({name: "admin", content: "Admin", color: "yellow"});
   FancyLogger.createTag({name: "admin-creation", content: "Admin Creation", color: "yellow"});
 };
@@ -118,22 +121,56 @@ app.post("/user", async (req, res) => {
 });
 
 
-app.put("/user", async (req, res) => {
-  const data = req.body;
-  const studentID = data.studentID;
-  let user = await User.findOne({studentID: studentID});
+app.post("/submit", async (req, res) => {
+  let user = await User.findOne({studentID: req.body.studentID});
 
-  if (!user.exists) {
-    logger.addTags("put", "warning");
-    logger.log("PUT request on non existing user");
-    return res.status(404).redirect("/");
+  if (user.row === undefined)
+    return res.status(404).json({error: true, message: "Utilisateur non trouvé (numéro d'étudiant " + req.body.studentID + ")"});
+
+  if (user.firstName !== req.body.firstName || user.lastName !== req.body.lastName)
+    return res.status(401).json({error: true, message: "Erreur d'authentification"});
+
+  switch (req.body.exercise) {
+    case 1:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex1");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: true, ex2: user.done.ex2, ex3: user.done.ex3}, up => {
+          if (up.error)
+            res.status(400).json(up);
+          res.status(200).json(up);
+        });
+        return;
+      }
+      break;
+
+    case 2:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex2");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: user.done.ex1, ex2: true, ex3: user.done.ex3}, up => {
+          if (up.error)
+            return res.status(400).json(up);
+          return res.status(200).json(up);
+        });
+      }
+      break;
+
+    case 3:
+      if (req.body.answer === "answer") {
+        logger.addTags("user-update", "user-update-ex3");
+        logger.log("Updating user " + user.fullName + " (studentID: " + user.studentID + ")");
+        await User.update({studentID: req.body.studentID}, {ex1: user.done.ex1, ex2: user.done.ex2, ex3: true}, up => {
+          if (up.error)
+            return res.status(400).json(up);
+          return res.status(200).json(up);
+        });
+      }
+      break;
+
+    default:
+      return res.status(400).json({error: true, message: "T'es un petit malin, toi ;)"});
   }
-
-  await User.update({studentID: studentID}, {
-    ex1: data.ex1,
-    ex2: data.ex2,
-    ex3: data.ex3
-  });
 });
 
 

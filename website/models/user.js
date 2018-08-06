@@ -1,4 +1,5 @@
 let db = require("./../config/db").connection;
+let pool = require("./../config/db").pool;
 const FancyLogger = require("simple-fancy-log");
 const logger = new FancyLogger();
 
@@ -115,36 +116,53 @@ class User {
   }
 
 
-  static async update (user, exs, cb = () => {}) {
+  static async update (user, exs, cb = (err) => {}) {
     await checkConnection();
 
-    let userToUpdate = this.findOne(user);
+    let userToUpdate = await this.findOne(user);
 
     if (!userToUpdate.exists)
       return;
 
-    if (exs.ex3 && !userToUpdate.done.ex3) {
+    if (exs.ex3 && !userToUpdate.done.ex3 && userToUpdate.done.ex2 && userToUpdate.done.ex1) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
+      logger.log("User " + userToUpdate.fullName + " completed ex 3");
+
+      /*await pool.getConnection (async (err, con) => {
+        if (err) {
+          logger.addTag("error");
+          logger.log("No connection available");
+          return;
+        }
+
+        await con.query("UPDATE User SET ex_3 = 1 WHERE id = ?", [userToUpdate.id]);
+        await con.query("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      });*/
+
       await db.execute("UPDATE User SET ex_3 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      await db.execute("INSERT INTO Ex3 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      return cb({error: false, message: "Profil mis à jour !"});
+    } else if (exs.ex3 && (!userToUpdate.done.ex2 || !userToUpdate.done.ex1)) {
+      return cb({error: true, message: "Vous devez d'abord compléter les exercices 1 et 2 pour répondre au 3"});
     }
 
     if (exs.ex2 && !userToUpdate.done.ex2) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
+      logger.log("User " + userToUpdate.fullName + " completed ex 2");
       await db.execute("UPDATE User SET ex_2 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      await db.execute("INSERT INTO Ex2 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      return cb({error: false, message: "Profil mis à jour !"});
     }
 
     if (exs.ex1 && !userToUpdate.done.ex1) {
       logger.addTags("update", "exercise", "exercise-success");
-      logger.log("User " + this.fullName + " completed ex 3");
-      await db.execute("UPDATE User SET ex_1 = 1 WHERE id = ?", userToUpdate.id);
-      await db.execute("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID])
+      logger.log("User " + userToUpdate.fullName + " completed ex 1");
+      await db.execute("UPDATE User SET ex_1 = 1 WHERE id = ?", [userToUpdate.id]);
+      await db.execute("INSERT INTO Ex1 (first_name, last_name, student_id) VALUES (?, ?, ?)", [userToUpdate.firstName, userToUpdate.lastName, userToUpdate.studentID]);
+      return cb({error: false, message: "Profil mis à jour !"});
     }
 
-    cb();
+    return cb({error: false, message: "Exercice déjà terminé !"});
   }
 
 
